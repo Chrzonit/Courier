@@ -2,9 +2,14 @@ import requests
 from src.config import REGISTER_DEVICE_URL, REFRESH_TOKEN_URL, ONE_TIME_CODE, DEVICE_DESC, DEVICE_ID
 
 class reMarkable:
-    def __init__(self):
-        self.device_token = None
-        self.user_token = None  # Store the user token separately
+    def __init__(self, device_token=None, user_token=None):
+        """Args:
+            device_token (str): The device token.
+            user_token (str): The user token."""
+            
+        self.device_token = device_token  # Store the device token separately
+        self.user_token = user_token  # Store the user token separately
+
 
     def get_device_token(self):
         """Registers a new device and retrieves a device token."""
@@ -23,6 +28,7 @@ class reMarkable:
         else:
             raise Exception("❌ Authentication failed:", response.status_code, response.text)
 
+
     def refresh_user_token(self):
         """Refreshes the user token using the device token."""
         if not self.device_token:
@@ -39,16 +45,29 @@ class reMarkable:
             return self.user_token
         else:
             raise Exception("❌ Token refresh failed:", response.status_code, response.text)
+        
 
-# Usage
-rm = reMarkable()
-device_token = rm.get_device_token()
-user_token = rm.refresh_user_token()
+    def test_auth(self):
+        """Test the authentication by fetching the user info and listing documents."""
+        if not self.user_token:
+            raise Exception("❌ No user token found. Please authenticate first.")
 
-with open("device_token.txt", "w") as file:
-    file.write(device_token)
+        response = requests.get(
+            "https://webapp.cloud.remarkable.com/document-storage/json/2/docs",
+            headers={"Authorization": f"Bearer {self.user_token}"}
+        )
 
-with open("user_token.txt", "w") as file:
-    file.write(user_token)
+        if response.status_code == 200:
+            documents = response.json()  # List of documents
+            print(f"✅ Authentication successful! Found {len(documents)} documents.")
+
+            for doc in documents:
+                print(f"- {doc['VissibleName']} (ID: {doc['ID']}, Type: {doc['Type']})")
+        else:
+            raise Exception("❌ Authentication failed:", response.status_code)
+
+
+
+
 
 

@@ -4,6 +4,7 @@ import streamlit as st
 from xhtml2pdf import pisa
 from dotenv import load_dotenv
 import os
+from .remarkable.api import reMarkable
 
 
 feed_urls = [{'feed': 'Dwarkesh', 'url': 'https://www.dwarkeshpatel.com/feed'}]
@@ -21,4 +22,8 @@ pprint.pprint(parsed_feed['entries'][0].content[0].value)
 with open('output.pdf', 'wb') as f:
     pisa.CreatePDF(parsed_feed['entries'][0].content[0].value, f)
     
-    
+load_dotenv()
+
+remarkable = reMarkable(device_token=os.getenv('DEVICE_TOKEN'), user_token=os.getenv('USER_TOKEN'))
+
+remarkable.test_auth()
